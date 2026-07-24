@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int        @id @default(autoincrement())
+  username   String     @unique
+  email      String     @unique
+  password   String
+
+  avatar     String?
+  bio        String?    @db.VarChar(250)
+
+  reviews    Review[]
+  watchlist  Watchlist[]
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @default(now()) @updatedAt
+}
+
+model Watchlist {
+  id          Int      @id @default(autoincrement())
+
+  tmdbId      Int
+  title       String
+  poster      String?
+  backdrop    String?
+  releaseDate String?
+  overview    String?
+
+  status      String   @default("PLANNED")
+
+  rating      Int?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      Int
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tmdbId])
+}
+
+
+model Review {
+  id        Int      @id @default(autoincrement())
+
+  tmdbId    Int
+
+  userId    Int
+
+  rating    Float
+
+  review    String   @db.Text
+
+  spoiler   Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tmdbId])
+}
