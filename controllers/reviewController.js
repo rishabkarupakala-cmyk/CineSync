@@ -4,7 +4,17 @@ const prisma = new PrismaClient();
 
 exports.upsertReview = async (req, res) => {
   try {
-    const { tmdbId, rating, review, spoiler } = req.body;
+    const {
+      tmdbId,
+      title,
+      poster,
+      backdrop,
+      releaseDate,
+      overview,
+      rating,
+      review,
+      spoiler,
+    } = req.body;
 
     if (!tmdbId) {
       return res.status(400).json({
@@ -27,6 +37,12 @@ exports.upsertReview = async (req, res) => {
       },
 
       update: {
+        title,
+        poster,
+        backdrop,
+        releaseDate,
+        overview,
+
         rating,
         review,
         spoiler,
@@ -34,9 +50,17 @@ exports.upsertReview = async (req, res) => {
 
       create: {
         tmdbId: Number(tmdbId),
+
+        title,
+        poster,
+        backdrop,
+        releaseDate,
+        overview,
+
         rating,
         review,
         spoiler: spoiler ?? false,
+
         userId: req.user.id,
       },
     });
@@ -50,6 +74,8 @@ exports.upsertReview = async (req, res) => {
     });
   }
 };
+
+  
 
 exports.getMovieReviews = async (req, res) => {
   try {
@@ -66,6 +92,22 @@ exports.getMovieReviews = async (req, res) => {
             id: true,
             username: true,
             avatar: true,
+          },
+        },
+
+        replies: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                avatar: true,
+              },
+            },
+          },
+
+          orderBy: {
+            createdAt: "asc",
           },
         },
       },
@@ -166,6 +208,131 @@ exports.getAverageRating = async (req, res) => {
     return res.json({
       averageRating: result._avg.rating ?? 0,
       totalReviews: result._count.rating,
+    });
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      message: "Server Error",
+    });
+  }
+};
+
+exports.addReply = async (req, res) => {
+  try {
+    const reviewId = Number(req.params.reviewId);
+    const { text } = req.body;
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({
+        message: "Reply cannot be empty.",
+      });
+    }
+
+    const review = await prisma.review.findUnique({
+      where: {
+        id: reviewId,
+      },
+    });
+
+    if (!review) {
+      return res.status(404).json({
+        message: "Review not found.",
+      });
+    }
+
+    const reply = await prisma.reply.create({
+      data: {
+        text: text.trim(),
+        reviewId,
+        userId: req.user.id,
+      },
+
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+
+    return res.status(201).json(reply);
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      message: "Server Error",
+    });
+  }
+};
+
+exports.getReplies = async (req, res) => {
+  try {
+    const reviewId = Number(req.params.reviewId);
+
+    const replies = await prisma.reply.findMany({
+      where: {
+        reviewId,
+      },
+
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            avatar: true,
+          },
+        },
+      },
+
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    return res.json(replies);
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      message: "Server Error",
+    });
+  }
+};
+
+exports.deleteReply = async (req, res) => {
+  try {
+    const replyId = Number(req.params.replyId);
+
+    const reply = await prisma.reply.findUnique({
+      where: {
+        id: replyId,
+      },
+    });
+
+    if (!reply) {
+      return res.status(404).json({
+        message: "Reply not found.",
+      });
+    }
+
+    if (reply.userId !== req.user.id) {
+      return res.status(403).json({
+        message: "Not authorized.",
+      });
+    }
+
+    await prisma.reply.delete({
+      where: {
+        id: replyId,
+      },
+    });
+
+    return res.json({
+      message: "Reply deleted.",
     });
   } catch (err) {
     console.error(err);

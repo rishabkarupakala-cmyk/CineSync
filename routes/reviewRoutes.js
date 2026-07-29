@@ -6,6 +6,9 @@ const {
   getMyReview,
   deleteReview,
   getAverageRating,
+  addReply,
+  getReplies,
+  deleteReply,
 } = require("../controllers/reviewController");
 
 const { protect } = require("../middleware/authMiddleware");
@@ -21,6 +24,9 @@ router.get("/average/:tmdbId", getAverageRating);
 router.get("/user/:tmdbId", protect, getMyReview);
 router.post("/", protect, upsertReview);
 router.delete("/:tmdbId", protect, deleteReview);
+router.post("/:reviewId/replies", protect, addReply);
+router.get("/:reviewId/replies", getReplies);
+router.delete("/replies/:replyId", protect, deleteReply);
 
 // Generic route LAST
 router.get("/:tmdbId", getMovieReviews);

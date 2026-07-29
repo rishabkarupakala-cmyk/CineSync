@@ -15,10 +15,27 @@ exports.getMyProfile = async (req, res) => {
         avatar: true,
         bio: true,
         createdAt: true,
+
+        reviews: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 10,
+        },
+
+        watchlist: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 10,
+        },
+
         _count: {
           select: {
             reviews: true,
             watchlist: true,
+            followers: true,
+            following: true,
           },
         },
       },
@@ -30,11 +47,11 @@ exports.getMyProfile = async (req, res) => {
       });
     }
 
-    res.json(user);
+    return res.json(user);
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Server Error",
     });
   }
@@ -46,25 +63,34 @@ exports.getUserProfile = async (req, res) => {
       where: {
         username: req.params.username,
       },
+
       select: {
         id: true,
         username: true,
         avatar: true,
         bio: true,
         createdAt: true,
+
         reviews: {
           orderBy: {
             createdAt: "desc",
           },
           take: 10,
         },
+
         watchlist: {
+          orderBy: {
+            createdAt: "desc",
+          },
           take: 10,
         },
+
         _count: {
           select: {
             reviews: true,
             watchlist: true,
+            followers: true,
+            following: true,
           },
         },
       },
@@ -76,11 +102,11 @@ exports.getUserProfile = async (req, res) => {
       });
     }
 
-    res.json(user);
+    return res.json(user);
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Server Error",
     });
   }
@@ -94,10 +120,12 @@ exports.updateProfile = async (req, res) => {
       where: {
         id: req.user.id,
       },
+
       data: {
         avatar,
         bio,
       },
+
       select: {
         id: true,
         username: true,
@@ -107,11 +135,11 @@ exports.updateProfile = async (req, res) => {
       },
     });
 
-    res.json(updatedUser);
+    return res.json(updatedUser);
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Server Error",
     });
   }

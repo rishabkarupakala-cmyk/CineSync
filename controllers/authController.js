@@ -18,11 +18,15 @@ const generateToken = (userId) => {
 
 const register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const {
+      name,
+      username,
+      email,
+      password,
+      isPrivate,
+    } = req.body;
 
-    console.log("REGISTER REQUEST:", req.body);
-
-    if (!username || !email || !password) {
+    if (!name || !username || !email || !password) {
       return res.status(400).json({
         message: "All fields are required.",
       });
@@ -31,15 +35,19 @@ const register = async (req, res) => {
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
-          { email },
-          { username },
+          {
+            email: email.trim().toLowerCase(),
+          },
+          {
+            username: username.trim(),
+          },
         ],
       },
     });
 
     if (existingUser) {
       return res.status(400).json({
-        message: "User already exists.",
+        message: "Email or username already exists.",
       });
     }
 
@@ -47,28 +55,35 @@ const register = async (req, res) => {
 
     const user = await prisma.user.create({
       data: {
-        username,
-        email,
+        name: name.trim(),
+        username: username.trim(),
+        email: email.trim().toLowerCase(),
         password: hashedPassword,
+        isPrivate: isPrivate ?? false,
       },
     });
 
     const token = generateToken(user.id);
 
-    res.status(201).json({
+    console.log("NEW USER:", user.username);
+
+    return res.status(201).json({
       message: "Registration successful.",
       token,
       user: {
         id: user.id,
+        name: user.name,
         username: user.username,
         email: user.email,
+        avatar: user.avatar,
+        bio: user.bio,
+        isPrivate: user.isPrivate,
       },
     });
-
   } catch (err) {
     console.error("REGISTER ERROR:", err);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Server Error",
     });
   }
@@ -77,21 +92,26 @@ const register = async (req, res) => {
 // ================= LOGIN =================
 
 const login = async (req, res) => {
+  console.log("LOGIN REQUEST:", req.body);
+
   try {
-
-    console.log("LOGIN REQUEST:", req.body);
-
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required.",
+      });
+    }
 
     const user = await prisma.user.findUnique({
       where: {
-        email,
+        email: email.trim().toLowerCase(),
       },
     });
 
-    console.log("USER FOUND:", user);
-
     if (!user) {
+      console.log("USER NOT FOUND");
+
       return res.status(401).json({
         message: "Invalid email or password.",
       });
@@ -102,9 +122,9 @@ const login = async (req, res) => {
       user.password
     );
 
-    console.log("PASSWORD MATCH:", passwordMatch);
-
     if (!passwordMatch) {
+      console.log("WRONG PASSWORD");
+
       return res.status(401).json({
         message: "Invalid email or password.",
       });
@@ -112,24 +132,30 @@ const login = async (req, res) => {
 
     const token = generateToken(user.id);
 
-    res.status(200).json({
+    console.log("LOGIN SUCCESS");
+    console.log("ID:", user.id);
+    console.log("USERNAME:", user.username);
+    console.log("EMAIL:", user.email);
+    console.log("TOKEN:", token);
+        return res.status(200).json({
       message: "Login successful.",
       token,
       user: {
         id: user.id,
+        name: user.name,
         username: user.username,
         email: user.email,
+        avatar: user.avatar,
+        bio: user.bio,
+        isPrivate: user.isPrivate,
       },
     });
-
   } catch (err) {
-
     console.error("LOGIN ERROR:", err);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Server Error",
     });
-
   }
 };
 

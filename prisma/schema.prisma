@@ -8,63 +8,126 @@ datasource db {
 }
 
 model User {
-  id         Int        @id @default(autoincrement())
-  username   String     @unique
-  email      String     @unique
-  password   String
+  id                     Int             @id @default(autoincrement())
+  username               String          @unique
+  email                  String          @unique
+  password               String
+  bio                    String?         @db.VarChar(250)
+  avatar                 String?
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  isPrivate              Boolean         @default(false)
+  name                   String
+  following              Follow[]        @relation("UserFollowing")
+  followers              Follow[]        @relation("UserFollowers")
+  receivedFollowRequests FollowRequest[] @relation("ReceivedFollowRequests")
+  sentFollowRequests     FollowRequest[] @relation("SentFollowRequests")
+  receivedNotifications  Notification[]  @relation("ReceivedNotifications")
+  sentNotifications      Notification[]  @relation("SentNotifications")
+  replies                Reply[]
+  reviews                Review[]
+  watchlist              Watchlist[]
+}
 
-  avatar     String?
-  bio        String?    @db.VarChar(250)
+model Follow {
+  id          Int      @id @default(autoincrement())
+  followerId  Int
+  followingId Int
+  createdAt   DateTime @default(now())
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
 
-  reviews    Review[]
-  watchlist  Watchlist[]
+  @@unique([followerId, followingId])
+}
 
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @default(now()) @updatedAt
+model FollowRequest {
+  id         Int                 @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  status     FollowRequestStatus @default(PENDING)
+  createdAt  DateTime            @default(now())
+  receiver   User                @relation("ReceivedFollowRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User                @relation("SentFollowRequests", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
 }
 
 model Watchlist {
   id          Int      @id @default(autoincrement())
-
-  tmdbId      Int
-  title       String
-  poster      String?
-  backdrop    String?
-  releaseDate String?
-  overview    String?
-
-  status      String   @default("PLANNED")
-
-  rating      Int?
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
   userId      Int
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tmdbId      Int
+  status      String   @default("PLANNED")
+  rating      Int?
+  createdAt   DateTime @default(now())
+  backdrop    String?
+  overview    String?
+  poster      String?
+  releaseDate String?
+  title       String
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, tmdbId])
 }
 
-
 model Review {
-  id        Int      @id @default(autoincrement())
-
-  tmdbId    Int
-
-  userId    Int
-
-  rating    Float
-
-  review    String   @db.Text
-
-  spoiler   Boolean  @default(false)
-
-  createdAt DateTime @default(now())
-
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            Int            @id @default(autoincrement())
+  userId        Int
+  tmdbId        Int
+  rating        Float
+  review        String
+  spoiler       Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  backdrop      String?
+  overview      String?
+  poster        String?
+  releaseDate   String?
+  title         String?
+  notifications Notification[]
+  replies       Reply[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, tmdbId])
+}
+
+model Reply {
+  id        Int      @id @default(autoincrement())
+  reviewId  Int
+  userId    Int
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id         Int              @id @default(autoincrement())
+  type       NotificationType
+  senderId   Int
+  receiverId Int
+  reviewId   Int?
+  message    String?          @db.VarChar(255)
+  isRead     Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+  receiver   User             @relation("ReceivedNotifications", fields: [receiverId], references: [id], onDelete: Cascade)
+  review     Review?          @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  sender     User             @relation("SentNotifications", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([receiverId, isRead])
+  @@index([createdAt])
+}
+
+enum FollowRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum NotificationType {
+  FOLLOW_REQUEST
+  FOLLOW
+  LIKE
+  REPLY
 }
