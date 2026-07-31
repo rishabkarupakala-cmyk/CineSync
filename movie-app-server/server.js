@@ -14,6 +14,7 @@ const friendRoutes = require("./routes/friendRoutes");
 const followRequestRoutes = require("./routes/followRequestRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const followRoutes = require("./routes/followRoutes");
+const securityRoutes = require("./routes/securityRoutes");
 console.log("Node:", process.version);
 console.log("Fetch:", typeof fetch);
 
@@ -33,6 +34,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/friends", friendRoutes);
 app.use("/api/follows", followRoutes);
+app.use("/api/security", securityRoutes);
 app.use("/api/follow-requests", followRequestRoutes);
 const PORT = process.env.PORT || 5001;
 

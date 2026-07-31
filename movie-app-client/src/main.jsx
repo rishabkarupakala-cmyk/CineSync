@@ -4,9 +4,10 @@ import { Toaster } from "react-hot-toast";
 import "./index.css";
 import App from "./App.jsx";
 import AppProviders from "./providers/AppProviders";
-
+import { ThemeProvider } from "./context/ThemeContext";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
+    <ThemeProvider>
     <AppProviders>
       <App />
       <Toaster
@@ -34,5 +35,6 @@ createRoot(document.getElementById("root")).render(
         }}
       />
     </AppProviders>
+    </ThemeProvider>
   </StrictMode>
 );

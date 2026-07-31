@@ -1,8 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
 import Navbar from "./components/Navbar";
-import ProtectedRoute from "./components/ProtectedRoute";
-
 import Home from "./pages/Home";
 import Search from "./pages/Search";
 import Watchlist from "./pages/Watchlist";
@@ -17,6 +14,17 @@ import UserProfile from "./pages/UserProfile";
 import Notifications from "./pages/Notifications";
 import Followers from "./pages/Followers";
 import Following from "./pages/Following";
+import Settings from "./pages/Settings";
+import AccountSettings from "./pages/AccountSettings";
+import ChangePassword from "./pages/ChangePassword";
+import ProfileSettings from "./pages/EditProfileSettings";
+import PrivacySettings from "./pages/PrivacySettings";
+import FriendRequestSettings from "./pages/FriendRequestSettings";
+import BlockedUsersSettings from "./pages/BlockedUsersSettings";
+import NotificationSettings from "./pages/NotificationSettings";
+import AppearanceSettings from "./pages/AppearanceSettings";
+import SecuritySettings from "./pages/SecuritySettings";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -30,6 +38,16 @@ function App() {
         <Route path="/movie/:id" element={<MovieDetails />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/settings" element={<Settings />} />
+<Route path="/settings/account" element={<AccountSettings />} />
+<Route path="/settings/account/edit-profile" element={<ProfileSettings />} />
+<Route path="/settings/account/password" element={<ChangePassword />} />
+<Route path="/settings/privacy"element={<PrivacySettings />}/>
+<Route path="/settings/privacy/friend-requests"element={<FriendRequestSettings />}/>
+<Route path="/settings/privacy/blocked-users"element={<BlockedUsersSettings />}/>
+<Route path="/settings/notifications"element={<NotificationSettings />}/>
+<Route path="/settings/appearance"element={<AppearanceSettings />}/>
+
 
         {/* Protected Routes */}
         <Route
@@ -103,6 +121,15 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+  path="/settings/security"
+  element={
+    <ProtectedRoute>
+      <SecuritySettings />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/profile/edit"

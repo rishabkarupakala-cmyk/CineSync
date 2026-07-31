@@ -218,17 +218,28 @@ exports.searchUsers = async (req, res) => {
 exports.getProfile = async (req, res) => {
   try {
     const currentUserId = req.user.id;
-    const id = Number(req.params.id);
+    const profileUserId = Number(req.params.id);
 
     const user = await prisma.user.findUnique({
       where: {
-        id,
+        id: profileUserId,
       },
       include: {
         followers: true,
         following: true,
-        reviews: true,
-        watchlist: true,
+        reviews: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 5,
+        },
+        watchlist: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 12,
+        },
+        favoriteMovies: true,
         receivedFollowRequests: true,
       },
     });
@@ -239,9 +250,17 @@ exports.getProfile = async (req, res) => {
       });
     }
 
+    const isOwnProfile = currentUserId === user.id;
+
     const isFollowing = user.followers.some(
       (follow) => follow.followerId === currentUserId
     );
+
+    const isFollower = user.following.some(
+      (follow) => follow.followingId === currentUserId
+    );
+
+    const isMutual = isFollowing && isFollower;
 
     const requestSent = user.receivedFollowRequests.some(
       (request) =>
@@ -249,22 +268,110 @@ exports.getProfile = async (req, res) => {
         request.status === "PENDING"
     );
 
+    const canViewProfile =
+  isOwnProfile ||
+  !user.isPrivate ||
+  isFollowing;
+
+    const canViewReviews =
+  canViewProfile &&
+  (
+    user.reviewsVisibility === "PUBLIC" ||
+    isOwnProfile ||
+    (user.reviewsVisibility === "FOLLOWERS" && isFollowing)
+  );
+
+    const canViewWatchlist =
+  canViewProfile &&
+  (
+    user.watchlistVisibility === "PUBLIC" ||
+    isOwnProfile ||
+    (user.watchlistVisibility === "FOLLOWERS" && isFollowing)
+  );
+
+    const canViewFavorites =
+  canViewProfile &&
+  (
+    user.favoritesVisibility === "PUBLIC" ||
+    isOwnProfile ||
+    (user.favoritesVisibility === "FOLLOWERS" && isFollowing)
+  );
+
+   const canViewActivity =
+  canViewProfile &&
+  (
+    user.activityVisibility === "PUBLIC" ||
+    isOwnProfile ||
+    (user.activityVisibility === "FOLLOWERS" && isFollowing)
+  );
+
+    
+
+let canMessage = false;
+
+    switch (user.allowMessages) {
+      case "EVERYONE":
+        canMessage = true;
+        break;
+
+      case "FOLLOWERS":
+        canMessage = isFollowing;
+        break;
+
+      case "FOLLOWING":
+        canMessage = isFollower;
+        break;
+
+      case "MUTUALS":
+        canMessage = isMutual;
+        break;
+
+      case "NOBODY":
+        canMessage = false;
+        break;
+    }
+
     return res.json({
-      id: user.id,
-      username: user.username,
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-      bio: user.bio,
-      isPrivate: user.isPrivate,
-      reviews: user.reviews,
-      watchlist: user.watchlist,
-      followerCount: user.followers.length,
-      followingCount: user.following.length,
-      reviewCount: user.reviews.length,
-      watchlistCount: user.watchlist.length,
-      isFollowing,
-      requestSent,
+      user: {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        banner: user.banner,
+        bio: user.bio,
+        isPrivate: user.isPrivate,
+
+        followerCount: user.followers.length,
+        followingCount: user.following.length,
+        reviewCount: user.reviews.length,
+        watchlistCount: user.watchlist.length,
+        favoriteCount: user.favoriteMovies.length,
+      },
+
+      relationship: {
+        isFollowing,
+        isFollower,
+        isMutual,
+        requestSent,
+      },
+
+      permissions: {
+  canViewProfile,
+  canViewReviews,
+  canViewWatchlist,
+  canViewFavorites,
+  canViewActivity,
+  canMessage,
+},
+
+      reviews: canViewReviews ? user.reviews : [],
+
+      watchlist: canViewWatchlist ? user.watchlist : [],
+
+      favoriteMovies: canViewFavorites
+        ? user.favoriteMovies
+        : [],
     });
   } catch (err) {
     console.error(err);

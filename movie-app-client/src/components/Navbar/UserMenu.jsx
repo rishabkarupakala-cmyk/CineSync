@@ -75,7 +75,7 @@ function UserMenu() {
     {
       icon: <FaGear />,
       label: "Settings",
-      to: "#",
+      to: "/settings",
     },
   ];
 
@@ -176,24 +176,10 @@ function UserMenu() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{
-              opacity: 0,
-              y: 15,
-              scale: 0.96,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-            }}
-            exit={{
-              opacity: 0,
-              y: 10,
-              scale: 0.96,
-            }}
-            transition={{
-              duration: 0.2,
-            }}
+            initial={{ opacity: 0, y: 15, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.96 }}
+            transition={{ duration: 0.2 }}
             className="
               absolute
               right-0
@@ -232,20 +218,7 @@ function UserMenu() {
                   <Link
                     to="/login"
                     onClick={() => setOpen(false)}
-                    className="
-                      mb-3
-                      flex
-                      items-center
-                      justify-center
-                      rounded-2xl
-                      bg-blue-600
-                      px-4
-                      py-3
-                      font-semibold
-                      text-white
-                      transition-all
-                      hover:bg-blue-700
-                    "
+                    className="mb-3 flex items-center justify-center rounded-2xl bg-blue-600 px-4 py-3 font-semibold text-white transition-all hover:bg-blue-700"
                   >
                     Login
                   </Link>
@@ -253,19 +226,7 @@ function UserMenu() {
                   <Link
                     to="/register"
                     onClick={() => setOpen(false)}
-                    className="
-                      flex
-                      items-center
-                      justify-center
-                      rounded-2xl
-                      border
-                      border-white/10
-                      px-4
-                      py-3
-                      text-slate-300
-                      transition-all
-                      hover:bg-white/10
-                    "
+                    className="flex items-center justify-center rounded-2xl border border-white/10 px-4 py-3 text-slate-300 transition-all hover:bg-white/10"
                   >
                     Create Account
                   </Link>
@@ -277,20 +238,7 @@ function UserMenu() {
                       key={item.label}
                       to={item.to}
                       onClick={() => setOpen(false)}
-                      className="
-                        mb-1
-                        flex
-                        items-center
-                        gap-4
-                        rounded-2xl
-                        px-4
-                        py-3
-                        text-slate-300
-                        transition-all
-                        duration-300
-                        hover:bg-white/10
-                        hover:text-white
-                      "
+                      className="mb-1 flex items-center gap-4 rounded-2xl px-4 py-3 text-slate-300 transition-all duration-300 hover:bg-white/10 hover:text-white"
                     >
                       <span className="text-lg">{item.icon}</span>
                       {item.label}
@@ -301,19 +249,7 @@ function UserMenu() {
 
                   <button
                     onClick={handleLogout}
-                    className="
-                      flex
-                      w-full
-                      items-center
-                      gap-4
-                      rounded-2xl
-                      px-4
-                      py-3
-                      text-red-400
-                      transition-all
-                      duration-300
-                      hover:bg-red-500/10
-                    "
+                    className="flex w-full items-center gap-4 rounded-2xl px-4 py-3 text-red-400 transition-all duration-300 hover:bg-red-500/10"
                   >
                     <FaArrowRightFromBracket />
                     Logout

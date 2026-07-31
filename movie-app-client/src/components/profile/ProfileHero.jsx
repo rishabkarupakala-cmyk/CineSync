@@ -9,9 +9,18 @@ import {
   FaUserFriends,
   FaStar,
   FaHeart,
+  FaFilm,
+  FaEnvelope,
 } from "react-icons/fa";
 
-function ProfileHero({ profile }) {
+function ProfileHero({
+  profile,
+  isOwnProfile = true,
+  relationship = {},
+  permissions = {},
+  onFollow,
+  onUnfollow,
+}) {
   const joinedDate = new Date(profile.createdAt).toLocaleDateString(
     "en-US",
     {
@@ -28,7 +37,17 @@ function ProfileHero({ profile }) {
       className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl"
     >
       {/* Banner */}
-      <div className="h-44 bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600" />
+      <div className="h-44 overflow-hidden">
+  {profile.banner ? (
+    <img
+      src={profile.banner}
+      alt="Banner"
+      className="h-full w-full object-cover"
+    />
+  ) : (
+    <div className="h-full bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600" />
+  )}
+</div>
 
       <div className="px-8 pb-8">
         <div className="-mt-20 flex flex-col gap-8 lg:flex-row lg:items-end">
@@ -54,15 +73,21 @@ function ProfileHero({ profile }) {
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <h1 className="text-4xl font-bold">
-                  {profile.username}
-                </h1>
+  {profile.name || profile.username}
+</h1>
 
+<p className="mt-1 text-lg text-slate-400">
+  @{profile.username}
+</p>
                 <p className="mt-1 text-lg text-slate-400">
                   @{profile.username.toLowerCase()}
                 </p>
 
                 <p className="mt-5 max-w-3xl text-slate-300">
-                  {profile.bio || "Movie lover. Tell the world about yourself."}
+                  {
+  profile.bio ??
+  "🎬 No bio yet. Time to introduce yourself to the CineSync community."
+}
                 </p>
 
                 <div className="mt-5 flex flex-wrap gap-5 text-sm text-slate-400">
@@ -87,13 +112,47 @@ function ProfileHero({ profile }) {
                 </div>
               </div>
 
-              <Link
-                to="/profile/edit"
-                className="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-5 py-3 font-semibold text-black transition hover:bg-cyan-400"
-              >
-                <FaUserEdit />
-                Edit Profile
-              </Link>
+              {isOwnProfile ? (
+  <Link
+    to="/profile/edit"
+    className="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-5 py-3 font-semibold text-black transition hover:bg-cyan-400"
+  >
+    <FaUserEdit />
+    Edit Profile
+  </Link>
+) : (
+  <div className="flex gap-3">
+    {relationship.isFollowing ? (
+      <button
+        onClick={onUnfollow}
+        className="rounded-xl bg-red-500 px-5 py-3 font-semibold hover:bg-red-400"
+      >
+        Following
+      </button>
+    ) : relationship.requestSent ? (
+      <button
+        disabled
+        className="rounded-xl bg-yellow-500 px-5 py-3 font-semibold text-black"
+      >
+        Requested
+      </button>
+    ) : (
+      <button
+        onClick={onFollow}
+        className="rounded-xl bg-cyan-500 px-5 py-3 font-semibold text-black hover:bg-cyan-400"
+      >
+        Follow
+      </button>
+    )}
+
+    {permissions.canMessage && (
+      <button className="flex items-center gap-2 rounded-xl border border-cyan-500 px-5 py-3 hover:bg-cyan-500/10">
+        <FaEnvelope />
+        Message
+      </button>
+    )}
+  </div>
+)}
             </div>
 
             {/* Stats */}
@@ -105,11 +164,11 @@ function ProfileHero({ profile }) {
     label="Reviews"
   />
 
-  <StatCard
-    icon={<FaHeart />}
-    value={profile._count?.watchlist ?? 0}
-    label="Watchlist"
-  />
+<StatCard
+  icon={<FaFilm />}
+  value={profile.favoriteCount ?? 0}
+  label="Favorites"
+/>
 
   <Link to="/followers">
     <StatCard

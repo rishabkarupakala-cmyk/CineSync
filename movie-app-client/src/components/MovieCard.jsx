@@ -13,7 +13,10 @@ import { getMovieTrailer } from "../api/tmdbApi";
 
 import { useWatchlist } from "../context/WatchlistContext";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
+
 import { WATCHLIST_STATUS } from "../constants/watchlistStatus";
+
 function MovieCard({ movie }) {
   const [showTrailer, setShowTrailer] = useState(false);
   const [trailerKey, setTrailerKey] = useState(null);
@@ -27,6 +30,7 @@ function MovieCard({ movie }) {
   } = useWatchlist();
 
   const { isAuthenticated } = useAuth();
+  const { posterSize } = useTheme();
 
   const poster = movie.poster_path
     ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
@@ -37,6 +41,28 @@ function MovieCard({ movie }) {
   const match = Math.round((movie.vote_average ?? 0) * 10);
 
   const saved = isMovieSaved(movie.id);
+
+  const posterStyles = {
+    compact: {
+      card: "w-[200px]",
+      image: "h-[300px]",
+      title: "text-lg",
+    },
+    comfortable: {
+      card: "w-[260px]",
+      image: "h-[390px]",
+      title: "text-xl",
+    },
+    large: {
+      card: "w-[320px]",
+      image: "h-[480px]",
+      title: "text-2xl",
+    },
+  };
+
+  const currentSize =
+    posterStyles[posterSize] ??
+    posterStyles.comfortable;
 
   const openTrailer = async (e) => {
     e.preventDefault();
@@ -87,7 +113,7 @@ function MovieCard({ movie }) {
   };
 
   return (
-    <>
+        <>
       <motion.div
         whileHover={{
           y: -8,
@@ -96,7 +122,7 @@ function MovieCard({ movie }) {
         transition={{
           duration: 0.25,
         }}
-        className="group relative w-[260px] flex-shrink-0"
+        className={`group relative flex-shrink-0 ${currentSize.card}`}
       >
         <Link to={`/movie/${movie.id}`}>
           <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900 shadow-xl">
@@ -104,7 +130,7 @@ function MovieCard({ movie }) {
             <img
               src={poster}
               alt={movie.title}
-              className="h-[390px] w-full object-cover transition-transform duration-700 group-hover:scale-110"
+              className={`${currentSize.image} w-full object-cover transition-transform duration-700 group-hover:scale-110`}
             />
 
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
@@ -120,7 +146,9 @@ function MovieCard({ movie }) {
 
             <div className="absolute bottom-0 left-0 right-0 p-4">
 
-              <h3 className="truncate text-xl font-bold text-white">
+              <h3
+                className={`truncate font-bold text-white ${currentSize.title}`}
+              >
                 {movie.title}
               </h3>
 
@@ -142,8 +170,7 @@ function MovieCard({ movie }) {
                 <motion.button
                   whileTap={{ scale: 0.85 }}
                   onClick={toggleWatchlist}
-                  className={`flex h-10 w-10 items-center justify-center rounded-xl transition
-                  ${
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
                     saved
                       ? "bg-red-500 text-white"
                       : "bg-white/20 text-white hover:bg-white/30"
